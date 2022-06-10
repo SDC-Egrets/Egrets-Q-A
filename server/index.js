@@ -1,5 +1,6 @@
 const express = require('express');
 const logger = require('morgan');
+const { getAllQuestions } = require('../database/index');
 require('dotenv').config();
 
 const app = express();
@@ -8,8 +9,14 @@ app.use(express.json());
 
 // get questions for a specific product
 app.get('/qa/:productId', (req, res) => {
-  console.log(req.params.productId);
-  res.send('questions success');
+  getAllQuestions(req.params.productId)
+    .then((data) => {
+      res.status(200).send(data);
+    })
+    .catch((err) => {
+      console.log('getAllQuestions err', err);
+      res.status(505);
+    });
 });
 
 // get answers for a specific question

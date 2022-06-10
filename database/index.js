@@ -1,5 +1,5 @@
 // connect to db
-const { Sequelize, Model, DataTypes } = require('sequelize');
+const { Sequelize, Model, DataTypes, QueryTypes } = require('sequelize');
 
 const sequelize = new Sequelize('postgres://localhost:5432/postgres');
 
@@ -106,14 +106,60 @@ AnswersPhoto.init({
   timestamps: false,
 });
 
-Question.findAll({
-  where: {
-    product_id: 2,
-  },
-})
-  .then((data) => {
-    console.log(data);
+Question.hasMany(Answer, { foreignKey: 'question_id' });
+Answer.belongsTo(Question, { foreignKey: 'question_id' });
+
+Answer.hasMany(AnswersPhoto, { foreignKey: 'answers_id' });
+AnswersPhoto.belongsTo(Answer, { foreignKey: 'answers_id' });
+
+const getAllQuestions = (productId) => (
+  Question.findAll({
+    attributes: [
+      ['id', 'question_id'],
+      ['body', 'question_body'],
+      ['date_written', 'question_date'],
+      'asker_name',
+      ['helpful', 'question_helpfulness'],
+      'reported',
+    ],
+    where: {
+      product_id: productId,
+      reported: false,
+    },
+    include: [{
+      model: Answer,
+      required: false,
+      include: [{
+        model: AnswersPhoto,
+        required: false,
+      }],
+    }],
   })
-  .catch((err) => {
-    console.log('findAll err', err);
-  });
+  // sequelize.query(
+  //   `SELECT q.id AS question_id, q.body AS question_body,  q.date_written AS question_date, q.asker_name,
+  //     q.helpful AS question_helpfulness, q.reported, a.id, a.body, a.date_written AS date, a.answerer_name,
+  //     a.helpful AS helpfulness, ap.url
+  //     FROM questions AS q
+  //     LEFT JOIN answers AS a
+  //     ON q.id = a.question_id AND a.reported=false
+  //     LEFT JOIN answers_photos AS ap
+  //     ON a.id = ap.answers_id
+  //     WHERE q.product_id=${productId} AND q.reported=false`, {
+  //     type: QueryTypes.SELECT,
+  //     model: Question,
+  //   })
+    .then((data) => {
+      const result = {
+        product_id: productId,
+        results: data,
+      };
+      return result;
+    })
+    .catch((err) => {
+      console.log('getAllQuestions err', err);
+    })
+);
+
+module.exports = {
+  getAllQuestions,
+};

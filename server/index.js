@@ -2,6 +2,8 @@ const express = require('express');
 const logger = require('morgan');
 const {
   getAllQuestions, getAllAnswers, addOneQuestion, addOneAnswer,
+  markQHelpful, markAHelpful,
+  reportQuestion, reportAnswer,
 } = require('../database/index');
 require('dotenv').config();
 
@@ -63,6 +65,54 @@ app.post('/qa/:questionId/answers', (req, res) => {
     })
     .catch((err) => {
       console.log('add one answer err', err);
+      res.status(505);
+    });
+});
+
+app.put('/qa/question/:questionId/helpful', (req, res) => {
+  const { questionId } = req.params;
+  markQHelpful(questionId)
+    .then(() => {
+      res.status(204).send();
+    })
+    .catch((err) => {
+      console.log('make q helpful err', err);
+      res.status(505);
+    });
+});
+
+app.put('/qa/question/:questionId/report', (req, res) => {
+  const { questionId } = req.params;
+  reportQuestion(questionId)
+    .then(() => {
+      res.status(204).send();
+    })
+    .catch((err) => {
+      console.log('report q err', err);
+      res.status(505);
+    });
+});
+
+app.put('/qa/answer/:answerId/helpful', (req, res) => {
+  const { answerId } = req.params;
+  markAHelpful(answerId)
+    .then(() => {
+      res.status(204).send();
+    })
+    .catch((err) => {
+      console.log('make A helpful err', err);
+      res.status(505);
+    });
+});
+
+app.put('/qa/answer/:answerId/report', (req, res) => {
+  const { answerId } = req.params;
+  reportAnswer(answerId)
+    .then(() => {
+      res.status(204).send();
+    })
+    .catch((err) => {
+      console.log('report A err', err);
       res.status(505);
     });
 });

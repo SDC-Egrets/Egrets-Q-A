@@ -218,17 +218,53 @@ const addOneAnswer = (questionId, body, name, email, photos, id) => (
   })
 );
 
-const markQHelpful = () => ();
+const markQHelpful = (questionId) => (
+  Question.update({
+    helpful: sequelize.literal('helpful + 1'),
+  }, {
+    where: {
+      id: questionId,
+    },
+  })
+);
 
-const markAHelpful = () => ();
+const reportQuestion = (questionId) => (
+  Question.update({
+    reported: true,
+  }, {
+    where: {
+      id: questionId,
+    },
+  })
+);
 
-const reportQuestion = () => ();
+const markAHelpful = (answerId) => (
+  Answer.update({
+    helpful: sequelize.literal('helpful + 1'),
+  }, {
+    where: {
+      id: answerId,
+    }
+  })
+);
 
-const reportAnswer = () => ();
+const reportAnswer = (answerId) => (
+  Answer.update({
+    reported: true,
+  }, {
+    where: {
+      id: answerId,
+    },
+  })
+);
 
 module.exports = {
   getAllQuestions,
   getAllAnswers,
   addOneQuestion,
   addOneAnswer,
+  markQHelpful,
+  reportQuestion,
+  markAHelpful,
+  reportAnswer,
 };

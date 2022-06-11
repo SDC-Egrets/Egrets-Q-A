@@ -56,10 +56,6 @@ Answer.init({
   question_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    references: {
-      model: Question,
-      key: 'id',
-    },
   },
   body: {
     type: DataTypes.TEXT,
@@ -93,14 +89,10 @@ AnswersPhoto.init({
   answers_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    references: {
-      model: Answer,
-      key: 'id',
-    },
   },
   url: DataTypes.TEXT,
 }, {
-  modelName: 'answersPhoto',
+  modelName: 'photo',
   tableName: 'answers_photos',
   sequelize,
   timestamps: false,
@@ -114,10 +106,12 @@ AnswersPhoto.belongsTo(Answer, { foreignKey: 'answers_id' });
 
 const getAllQuestions = (productId) => (
   Question.findAll({
+    benchmark: true,
+    logging: console.log,
     attributes: [
       ['id', 'question_id'],
       ['body', 'question_body'],
-      ['date_written', 'question_date'],
+      [sequelize.fn('to_timestamp', sequelize.literal('question.date_written / 1000')), 'question_date'],
       'asker_name',
       ['helpful', 'question_helpfulness'],
       'reported',
@@ -129,25 +123,25 @@ const getAllQuestions = (productId) => (
     include: [{
       model: Answer,
       required: false,
+      attributes: [
+        'id',
+        'body',
+        [sequelize.fn('to_timestamp', sequelize.literal('answers.date_written / 1000')), 'date'],
+        'answerer_name',
+        ['helpful', 'helpfulness'],
+      ],
+      where: {
+        reported: false,
+      },
       include: [{
         model: AnswersPhoto,
         required: false,
+        attributes: [
+          'url',
+        ],
       }],
     }],
   })
-  // sequelize.query(
-  //   `SELECT q.id AS question_id, q.body AS question_body,  q.date_written AS question_date, q.asker_name,
-  //     q.helpful AS question_helpfulness, q.reported, a.id, a.body, a.date_written AS date, a.answerer_name,
-  //     a.helpful AS helpfulness, ap.url
-  //     FROM questions AS q
-  //     LEFT JOIN answers AS a
-  //     ON q.id = a.question_id AND a.reported=false
-  //     LEFT JOIN answers_photos AS ap
-  //     ON a.id = ap.answers_id
-  //     WHERE q.product_id=${productId} AND q.reported=false`, {
-  //     type: QueryTypes.SELECT,
-  //     model: Question,
-  //   })
     .then((data) => {
       const result = {
         product_id: productId,
@@ -160,6 +154,81 @@ const getAllQuestions = (productId) => (
     })
 );
 
+const getAllAnswers = (questionId, page = 1, count = 5) => (
+  Answer.findAll({
+    benchmark: true,
+    logging: console.log,
+    attributes: [
+      ['id', 'answer_id'],
+      'body',
+      [sequelize.fn('to_timestamp', sequelize.literal('date_written / 1000')), 'date'],
+      'answerer_name',
+      ['helpful', 'helpfulness'],
+    ],
+    offset: (page - 1) * 5,
+    limit: count,
+    where: {
+      question_id: questionId,
+      reported: false,
+    },
+    include: [{
+      model: AnswersPhoto,
+      required: false,
+      attributes: [
+        'id',
+        'url',
+      ],
+    }],
+  })
+    .then((data) => {
+      const result = {
+        question: questionId,
+        page,
+        count,
+        results: data,
+      };
+      return result;
+    })
+    .catch((err) => {
+      console.log('getAllQuestions err', err);
+    })
+);
+
+const addOneQuestion = (productId, body, name, email, id) => (
+  // id should not be included
+  Question.create({
+    id,
+    product_id: productId,
+    body,
+    date_written: Math.floor(new Date().getTime()),
+    asker_name: name,
+    asker_email: email,
+  })
+);
+
+const addOneAnswer = (questionId, body, name, email, photos, id) => (
+  // id should not be included
+  Answer.create({
+    id,
+    question_id: questionId,
+    body,
+    date_written: Math.floor(new Date().getTime()),
+    answerer_name: name,
+    answerer_email: email,
+  })
+);
+
+const markQHelpful = () => ();
+
+const markAHelpful = () => ();
+
+const reportQuestion = () => ();
+
+const reportAnswer = () => ();
+
 module.exports = {
   getAllQuestions,
+  getAllAnswers,
+  addOneQuestion,
+  addOneAnswer,
 };

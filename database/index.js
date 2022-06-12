@@ -1,5 +1,5 @@
 // connect to db
-const { Sequelize, Model, DataTypes, QueryTypes } = require('sequelize');
+const { Sequelize, Model, DataTypes } = require('sequelize');
 
 const sequelize = new Sequelize('postgres://localhost:5432/postgres');
 
@@ -104,10 +104,10 @@ Answer.belongsTo(Question, { foreignKey: 'question_id' });
 Answer.hasMany(AnswersPhoto, { foreignKey: 'answers_id' });
 AnswersPhoto.belongsTo(Answer, { foreignKey: 'answers_id' });
 
-const getAllQuestions = (productId) => (
-  Question.findAll({
-    benchmark: true,
-    logging: console.log,
+const getAllQuestions = (productId) => {
+  const result = { product_id: productId };
+  return Question.findAll({
+    raw: true,
     attributes: [
       ['id', 'question_id'],
       ['body', 'question_body'],
@@ -120,39 +120,42 @@ const getAllQuestions = (productId) => (
       product_id: productId,
       reported: false,
     },
-    include: [{
-      model: Answer,
-      required: false,
-      attributes: [
-        'id',
-        'body',
-        [sequelize.fn('to_timestamp', sequelize.literal('answers.date_written / 1000')), 'date'],
-        'answerer_name',
-        ['helpful', 'helpfulness'],
-      ],
-      where: {
-        reported: false,
-      },
-      include: [{
-        model: AnswersPhoto,
-        required: false,
-        attributes: [
-          'url',
-        ],
-      }],
-    }],
   })
     .then((data) => {
-      const result = {
-        product_id: productId,
-        results: data,
-      };
-      return result;
+      // console.log('question data', data);
+      result.results = data;
+      return Promise.all(result.results.map((question) => (
+        Answer.findAll({
+          raw: true,
+          attributes: [
+            'id',
+            'body',
+            [sequelize.fn('to_timestamp', sequelize.literal('date_written / 1000')), 'date'],
+            'answerer_name',
+            ['helpful', 'helpfulness'],
+          ],
+          where: {
+            reported: false,
+            question_id: question.question_id,
+          },
+          include: [{
+            model: AnswersPhoto,
+            required: false,
+            attributes: [
+              'url',
+            ],
+          }],
+        }))));
+    })
+    .then((data) => {
+      console.log('answer data', data);
     })
     .catch((err) => {
       console.log('getAllQuestions err', err);
-    })
-);
+    });
+};
+
+getAllQuestions(1);
 
 const getAllAnswers = (questionId, page = 1, count = 5) => (
   Answer.findAll({
@@ -244,7 +247,7 @@ const markAHelpful = (answerId) => (
   }, {
     where: {
       id: answerId,
-    }
+    },
   })
 );
 

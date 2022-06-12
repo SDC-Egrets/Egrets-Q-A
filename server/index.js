@@ -13,13 +13,15 @@ app.use(express.json());
 
 // get questions for a specific product
 app.get('/qa/:productId', (req, res) => {
-  getAllQuestions(req.params.productId)
+  const { page, count } = req.query;
+  const { productId } = req.params;
+  getAllQuestions(productId, page, count)
     .then((data) => {
       res.status(200).send(data);
     })
     .catch((err) => {
       console.log('getAllQuestions err', err);
-      res.status(505);
+      res.status(500);
     });
 });
 
@@ -33,7 +35,7 @@ app.get('/qa/:questionId/answers', (req, res) => {
     })
     .catch((err) => {
       console.log('getAllAnswers err', err);
-      res.status(505);
+      res.status(500).send();
     });
 });
 
@@ -49,7 +51,7 @@ app.post('/qa/:productId', (req, res) => {
     })
     .catch((err) => {
       console.log('add one question err', err);
-      res.status(505);
+      res.status(500);
     });
 });
 
@@ -65,7 +67,7 @@ app.post('/qa/:questionId/answers', (req, res) => {
     })
     .catch((err) => {
       console.log('add one answer err', err);
-      res.status(505);
+      res.status(500);
     });
 });
 

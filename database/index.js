@@ -104,10 +104,10 @@ Answer.belongsTo(Question, { foreignKey: 'question_id' });
 Answer.hasMany(AnswersPhoto, { foreignKey: 'answers_id' });
 AnswersPhoto.belongsTo(Answer, { foreignKey: 'answers_id' });
 
-const getAllQuestions = (productId) => {
-  const result = { product_id: productId };
-  return Question.findAll({
-    raw: true,
+const getAllQuestions = (productId, page = 1, count = 5) => (
+  Question.findAll({
+    benchmark: true,
+    logging: console.log,
     attributes: [
       ['id', 'question_id'],
       ['body', 'question_body'],
@@ -116,46 +116,53 @@ const getAllQuestions = (productId) => {
       ['helpful', 'question_helpfulness'],
       'reported',
     ],
+    offset: (page - 1) * 5,
+    limit: count,
     where: {
       product_id: productId,
       reported: false,
     },
+    include: [{
+      model: Answer,
+      required: false,
+      attributes: [
+        'id',
+        'body',
+        [sequelize.fn('to_timestamp', sequelize.literal('answers.date_written / 1000')), 'date'],
+        'answerer_name',
+        ['helpful', 'helpfulness'],
+      ],
+      where: {
+        reported: false,
+      },
+      include: [{
+        model: AnswersPhoto,
+        required: false,
+        attributes: [
+          'url',
+        ],
+      }],
+    }],
   })
     .then((data) => {
-      // console.log('question data', data);
-      result.results = data;
-      return Promise.all(result.results.map((question) => (
-        Answer.findAll({
-          raw: true,
-          attributes: [
-            'id',
-            'body',
-            [sequelize.fn('to_timestamp', sequelize.literal('date_written / 1000')), 'date'],
-            'answerer_name',
-            ['helpful', 'helpfulness'],
-          ],
-          where: {
-            reported: false,
-            question_id: question.question_id,
-          },
-          include: [{
-            model: AnswersPhoto,
-            required: false,
-            attributes: [
-              'url',
-            ],
-          }],
-        }))));
-    })
-    .then((data) => {
-      console.log('answer data', data);
+      data.forEach((question, i) => {
+        const newAnswer = {};
+        question.answers.forEach((answer) => {
+          newAnswer[answer.id] = answer;
+        });
+        data[i].dataValues.answers = newAnswer;
+      });
+      const returnObj = {
+        product_id: productId,
+        results: data,
+      };
+      return returnObj;
     })
     .catch((err) => {
-      console.log('getAllQuestions err', err);
-    });
-};
-
-getAllQuestions(1);
+      console.log('here', err);
+      return null;
+    })
+);
 
 const getAllAnswers = (questionId, page = 1, count = 5) => (
   Answer.findAll({
@@ -192,9 +199,6 @@ const getAllAnswers = (questionId, page = 1, count = 5) => (
       };
       return result;
     })
-    .catch((err) => {
-      console.log('getAllQuestions err', err);
-    })
 );
 
 const addOneQuestion = (productId, body, name, email, id) => (
@@ -219,6 +223,13 @@ const addOneAnswer = (questionId, body, name, email, photos, id) => (
     answerer_name: name,
     answerer_email: email,
   })
+    // .then(() => {
+    //   if (photos) {
+    //     return AnswersPhoto.create({
+
+    //     })
+    //   }
+    // })
 );
 
 const markQHelpful = (questionId) => (

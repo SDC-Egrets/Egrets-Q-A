@@ -60,10 +60,10 @@ app.post('/qa/:productId', (req, res) => {
 // add an answer for a specific question
 app.post('/qa/:questionId/answers', (req, res) => {
   const {
-    id, body, name, email, photos,
+    body, name, email, photos,
   } = req.body;
   const { questionId } = req.params;
-  addOneAnswer(questionId, body, name, email, photos, id)
+  addOneAnswer(questionId, body, name, email, photos)
     .then(() => {
       res.status(201).send();
     })

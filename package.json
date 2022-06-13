@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/SDC-Egrets/Egrets-Q-A#readme",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
     "morgan": "^1.10.0",
@@ -33,6 +34,7 @@
     "eslint-plugin-jsx-a11y": "^6.5.1",
     "eslint-plugin-react": "^7.30.0",
     "eslint-plugin-react-hooks": "^4.5.0",
+    "frisby": "^2.1.3",
     "jest": "^28.1.1",
     "nodemon": "^2.0.16"
   }

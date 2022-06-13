@@ -1,7 +1,7 @@
 // connect to db
 const { Sequelize, Model, DataTypes } = require('sequelize');
 
-const sequelize = new Sequelize('postgres://localhost:5432/postgres');
+const sequelize = new Sequelize('postgres://localhost:5432/postgres', { logging: false });
 
 // test if connection is ok
 // sequelize.authenticate()
@@ -106,8 +106,6 @@ AnswersPhoto.belongsTo(Answer, { foreignKey: 'answers_id' });
 
 const getAllQuestions = (productId, page = 1, count = 5) => (
   Question.findAll({
-    benchmark: true,
-    logging: console.log,
     attributes: [
       ['id', 'question_id'],
       ['body', 'question_body'],
@@ -166,8 +164,6 @@ const getAllQuestions = (productId, page = 1, count = 5) => (
 
 const getAllAnswers = (questionId, page = 1, count = 5) => (
   Answer.findAll({
-    benchmark: true,
-    logging: console.log,
     attributes: [
       ['id', 'answer_id'],
       'body',

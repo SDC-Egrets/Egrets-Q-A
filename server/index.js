@@ -1,5 +1,6 @@
 const express = require('express');
 const logger = require('morgan');
+const cors = require('cors');
 const {
   getAllQuestions, getAllAnswers, addOneQuestion, addOneAnswer,
   markQHelpful, markAHelpful,
@@ -10,6 +11,7 @@ require('dotenv').config();
 const app = express();
 app.use(logger('tiny'));
 app.use(express.json());
+app.use(cors());
 
 // get questions for a specific product
 app.get('/qa/:productId', (req, res) => {
@@ -42,10 +44,10 @@ app.get('/qa/:questionId/answers', (req, res) => {
 // add a question for a specific product
 app.post('/qa/:productId', (req, res) => {
   const {
-    id, body, name, email,
+    body, name, email,
   } = req.body;
   const { productId } = req.params;
-  addOneQuestion(productId, body, name, email, id)
+  addOneQuestion(productId, body, name, email)
     .then(() => {
       res.status(201).send();
     })

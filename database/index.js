@@ -18,7 +18,7 @@ Question.init({
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    allowNull: false,
+    autoIncrement: true,
   },
   product_id: {
     type: DataTypes.INTEGER,
@@ -51,7 +51,7 @@ Answer.init({
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    allowNull: false,
+    autoIncrement: true,
   },
   question_id: {
     type: DataTypes.INTEGER,
@@ -84,7 +84,7 @@ AnswersPhoto.init({
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
-    allowNull: false,
+    autoIncrement: true,
   },
   answers_id: {
     type: DataTypes.INTEGER,
@@ -201,35 +201,39 @@ const getAllAnswers = (questionId, page = 1, count = 5) => (
     })
 );
 
-const addOneQuestion = (productId, body, name, email, id) => (
-  // id should not be included
+const addOneQuestion = (productId, body, name, email) => (
   Question.create({
-    id,
     product_id: productId,
     body,
     date_written: Math.floor(new Date().getTime()),
     asker_name: name,
     asker_email: email,
+    reported: false,
+    helpful: 0,
   })
 );
 
-const addOneAnswer = (questionId, body, name, email, photos, id) => (
-  // id should not be included
+const addOneAnswer = (questionId, body, name, email, photos = []) => (
   Answer.create({
-    id,
     question_id: questionId,
     body,
     date_written: Math.floor(new Date().getTime()),
     answerer_name: name,
     answerer_email: email,
+    reported: false,
+    helpful: 0,
   })
-    // .then(() => {
-    //   if (photos) {
-    //     return AnswersPhoto.create({
-
-    //     })
-    //   }
-    // })
+    .then((data) => {
+      let answers_id = data.id;
+      const promises = [];
+      photos.forEach((url) => {
+        promises.push(AnswersPhoto.create({
+          answers_id,
+          url,
+        }));
+      });
+      return Promise.all(promises);
+    })
 );
 
 const markQHelpful = (questionId) => (

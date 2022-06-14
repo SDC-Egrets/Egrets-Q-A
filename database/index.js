@@ -1,6 +1,6 @@
 const { Sequelize, Model, DataTypes } = require('sequelize');
 
-const sequelize = new Sequelize('https://3.86.43.151:5432/sdc_aws', { logging: false });
+const sequelize = new Sequelize('http://3.86.43.151:5432/sdc_aws', { logging: false });
 
 class Question extends Model {}
 Question.init({

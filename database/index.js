@@ -1,7 +1,13 @@
 const { Sequelize, Model, DataTypes } = require('sequelize');
 require('dotenv').config();
 
-const sequelize = new Sequelize(`postgres://${process.env.USERNAME}:${process.env.PASSWORD}@${process.env.HOST}:5432/${process.env.DATABASE}`, { logging: false });
+let sequelize;
+
+if (process.env.HOST === 'localhost') {
+  sequelize = new Sequelize('postgres://localhost:5432/postgres');
+} else {
+  sequelize = new Sequelize(`postgres://${process.env.USERNAME}:${process.env.PASSWORD}@${process.env.HOST}:5432/${process.env.DATABASE}`, { logging: false });
+}
 
 class Question extends Model {}
 Question.init({

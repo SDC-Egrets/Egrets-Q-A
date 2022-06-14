@@ -12,6 +12,7 @@ const app = express();
 app.use(logger('tiny'));
 app.use(express.json());
 app.use(cors());
+app.use("/loaderio-a4b51fd4efdc4d4f65a338681c2a6188.txt", express.static(__dirname + '/../loaderio-a4b51fd4efdc4d4f65a338681c2a6188.txt'));
 
 // get questions for a specific product
 app.get('/qa/:productId', (req, res) => {

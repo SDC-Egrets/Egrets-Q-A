@@ -1,18 +1,7 @@
-// connect to db
 const { Sequelize, Model, DataTypes } = require('sequelize');
 
-const sequelize = new Sequelize('postgres://localhost:5432/postgres', { logging: false });
+const sequelize = new Sequelize('http://3.86.43.151:5432/sdc_aws', { logging: false });
 
-// test if connection is ok
-// sequelize.authenticate()
-//   .then(() => {
-//     console.log('Connection has been established successfully.');
-//   })
-//   .catch((error) => {
-//     console.error('Unable to connect to the database:', error);
-//   });
-
-// Working with Legacy Tables
 class Question extends Model {}
 Question.init({
   id: {

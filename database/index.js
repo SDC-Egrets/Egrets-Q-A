@@ -1,6 +1,14 @@
 const { Sequelize, Model, DataTypes } = require('sequelize');
+require('dotenv').config();
 
-const sequelize = new Sequelize('http://3.86.43.151:5432/sdc_aws', { logging: false });
+const sequelize = new Sequelize(`postgres://${process.env.USERNAME}:${process.env.PASSWORD}@${process.env.HOST}:5432/${process.env.DATABASE}`, { logging: false });
+
+// const sequelize = new Sequelize(process.env.DATABASE, process.env.USERNAME, process.env.PASSWORD, {
+//   host: process.env.HOST,
+//   port: process.env.DBPORT,
+//   dialect: 'postgres',
+//   logging: false,
+// });
 
 class Question extends Model {}
 Question.init({
@@ -146,7 +154,7 @@ const getAllQuestions = (productId, page = 1, count = 5) => (
       return returnObj;
     })
     .catch((err) => {
-      console.log('here', err);
+      console.log('get all Qs', err);
       return null;
     })
 );

@@ -13,7 +13,7 @@ const generateRandomProductId = () => {
 export const failures = new Rate('failed_requests');
 
 export const options = {
-  vus: 100,
+  vus: 1000,
   duration: '15s',
   thresholds: {
     failed_requests: ['rate<0.01'],

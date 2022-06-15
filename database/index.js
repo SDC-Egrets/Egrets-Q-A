@@ -1,13 +1,9 @@
-const { Sequelize, Model, DataTypes } = require('sequelize');
+const { Sequelize, Model, DataTypes, QueryTypes } = require('sequelize');
 require('dotenv').config();
 
-let sequelize;
-
-if (process.env.HOST === 'localhost') {
-  sequelize = new Sequelize('postgres://localhost:5432/postgres');
-} else {
-  sequelize = new Sequelize(`postgres://${process.env.USERNAME}:${process.env.PASSWORD}@${process.env.HOST}:5432/${process.env.DATABASE}`, { logging: false });
-}
+const sequelize = new Sequelize(`postgres://${process.env.USERNAME}:${process.env.PASSWORD}@${process.env.HOST}:5432/${process.env.DATABASE}`, {
+  logging: false,
+});
 
 class Question extends Model {}
 Question.init({
@@ -101,61 +97,31 @@ Answer.hasMany(AnswersPhoto, { foreignKey: 'answers_id' });
 AnswersPhoto.belongsTo(Answer, { foreignKey: 'answers_id' });
 
 const getAllQuestions = (productId, page = 1, count = 5) => (
-  Question.findAll({
-    attributes: [
-      ['id', 'question_id'],
-      ['body', 'question_body'],
-      [sequelize.fn('to_timestamp', sequelize.literal('question.date_written / 1000')), 'question_date'],
-      'asker_name',
-      ['helpful', 'question_helpfulness'],
-      'reported',
-    ],
-    offset: (page - 1) * 5,
-    limit: count,
-    where: {
-      product_id: productId,
-      reported: false,
-    },
-    include: [{
-      model: Answer,
-      required: false,
-      attributes: [
-        'id',
-        'body',
-        [sequelize.fn('to_timestamp', sequelize.literal('answers.date_written / 1000')), 'date'],
-        'answerer_name',
-        ['helpful', 'helpfulness'],
-      ],
-      where: {
-        reported: false,
-      },
-      include: [{
-        model: AnswersPhoto,
-        required: false,
-        attributes: [
-          'url',
-        ],
-      }],
-    }],
+  sequelize.query(`SELECT json_build_object(
+    'product_id', ${productId},
+    'results', array_to_json(array_agg(json_build_object(
+        'question_id', id,
+        'question_body', body,
+        'question_date', to_timestamp(date_written / 1000),
+        'asker_name', asker_name,
+        'question_helpfulness', helpful,
+        'reported', reported,
+        'answers', (
+      SELECT json_object_agg(id, tmp)
+          FROM (
+          SELECT id as id, json_build_object('id', id, 'body', body,
+          'date', to_timestamp(date_written / 1000), 'answerer_name', answerer_name,
+          'helpfulness', helpful, 'photos', (
+          SELECT array_to_json(array_agg(url))
+          FROM answers_photos
+          WHERE answers_id = a.id)) AS tmp
+          FROM answers AS a
+          WHERE question_id = q.id AND reported = false) ap )))))
+  FROM questions AS q
+  WHERE product_id = ${productId} AND reported = false
+  LIMIT ${count} OFFSET ${(page - 1) * 5};`, {
+    type: QueryTypes.SELECT,
   })
-    .then((data) => {
-      data.forEach((question, i) => {
-        const newAnswer = {};
-        question.answers.forEach((answer) => {
-          newAnswer[answer.id] = answer;
-        });
-        data[i].dataValues.answers = newAnswer;
-      });
-      const returnObj = {
-        product_id: productId,
-        results: data,
-      };
-      return returnObj;
-    })
-    .catch((err) => {
-      console.log('get all Qs', err);
-      return null;
-    })
 );
 
 const getAllAnswers = (questionId, page = 1, count = 5) => (

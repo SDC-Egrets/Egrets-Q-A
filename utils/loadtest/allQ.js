@@ -6,19 +6,18 @@ const url = 'http://localhost:8000/qa';
 
 export const requests = new Counter('http_reqs');
 
-const generateRandomProductId = () => {
-  return Math.floor((Math.random() * 1000011 + 1));
-}
+const generateRandomProductId = () => (
+  Math.floor((Math.random() * (1000011 - 900000) + 900000))
+);
 
 export const failures = new Rate('failed_requests');
 
 export const options = {
-  vus: 1000,
-  duration: '15s',
+  vus: 100,
+  duration: '30s',
   thresholds: {
-    failed_requests: ['rate<0.01'],
-    http_req_failed: ['rate<0.01'],
-    http_req_duration: ['p(100)<2000'],
+    failed_requests: ['rate < 0.01'],
+    http_req_duration: ['p(100) < 2000'],
   },
 };
 
@@ -32,5 +31,5 @@ export default function () {
     'transaction time <2000ms': (r) => r.timings.duration < 2000,
   });
   failures.add(res.status !== 200);
-  sleep(1);
+  sleep(0.1);
 }

@@ -1,5 +1,4 @@
 const express = require('express');
-const logger = require('morgan');
 const cors = require('cors');
 const {
   getAllQuestions, getAllAnswers, addOneQuestion, addOneAnswer,
@@ -9,26 +8,23 @@ const {
 require('dotenv').config();
 
 const app = express();
-app.use(logger('tiny'));
 app.use(express.json());
 app.use(cors());
-app.use("/loaderio-a4b51fd4efdc4d4f65a338681c2a6188.txt", express.static(__dirname + '/../loaderio-a4b51fd4efdc4d4f65a338681c2a6188.txt'));
+app.use('/loaderio-a4b51fd4efdc4d4f65a338681c2a6188.txt', express.static(__dirname + '/../loaderio-a4b51fd4efdc4d4f65a338681c2a6188.txt'));
 
-// get questions for a specific product
 app.get('/qa/:productId', (req, res) => {
   const { page, count } = req.query;
   const { productId } = req.params;
   getAllQuestions(productId, page, count)
     .then((data) => {
-      res.status(200).send(data);
+      res.status(200).send(data[0].json_build_object);
     })
     .catch((err) => {
-      console.log('getAllQuestions err', err);
-      res.status(500);
+      console.log(err);
+      res.status(500).send(err);
     });
 });
 
-// get answers for a specific question
 app.get('/qa/:questionId/answers', (req, res) => {
   const { page, count } = req.query;
   const { questionId } = req.params;
@@ -37,12 +33,10 @@ app.get('/qa/:questionId/answers', (req, res) => {
       res.status(200).send(data);
     })
     .catch((err) => {
-      console.log('getAllAnswers err', err);
-      res.status(500).send();
+      res.status(500).send(err);
     });
 });
 
-// add a question for a specific product
 app.post('/qa/:productId', (req, res) => {
   const {
     body, name, email,
@@ -53,12 +47,10 @@ app.post('/qa/:productId', (req, res) => {
       res.status(201).send();
     })
     .catch((err) => {
-      console.log('add one question err', err);
-      res.status(500);
+      res.status(500).send(err);
     });
 });
 
-// add an answer for a specific question
 app.post('/qa/:questionId/answers', (req, res) => {
   const {
     body, name, email, photos,
@@ -69,8 +61,7 @@ app.post('/qa/:questionId/answers', (req, res) => {
       res.status(201).send();
     })
     .catch((err) => {
-      console.log('add one answer err', err);
-      res.status(500);
+      res.status(500).send(err);
     });
 });
 
@@ -81,8 +72,7 @@ app.put('/qa/question/:questionId/helpful', (req, res) => {
       res.status(204).send();
     })
     .catch((err) => {
-      console.log('make q helpful err', err);
-      res.status(505);
+      res.status(505).send(err);
     });
 });
 
@@ -93,8 +83,7 @@ app.put('/qa/question/:questionId/report', (req, res) => {
       res.status(204).send();
     })
     .catch((err) => {
-      console.log('report q err', err);
-      res.status(505);
+      res.status(505).send(err);
     });
 });
 
@@ -105,8 +94,7 @@ app.put('/qa/answer/:answerId/helpful', (req, res) => {
       res.status(204).send();
     })
     .catch((err) => {
-      console.log('make A helpful err', err);
-      res.status(505);
+      res.status(505).send(err);
     });
 });
 
@@ -117,11 +105,10 @@ app.put('/qa/answer/:answerId/report', (req, res) => {
       res.status(204).send();
     })
     .catch((err) => {
-      console.log('report A err', err);
-      res.status(505);
+      res.status(505).send(err);
     });
 });
 
 app.listen(process.env.PORT, () => {
-  console.log(`server listen on ${process.env.PORT}`);
+  console.log('success');
 });

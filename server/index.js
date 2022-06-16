@@ -10,7 +10,7 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 app.use(cors());
-app.use('/loaderio-a4b51fd4efdc4d4f65a338681c2a6188.txt', express.static(__dirname + '/../loaderio-a4b51fd4efdc4d4f65a338681c2a6188.txt'));
+app.use('/loaderio-802017663598481767d95a0bfb7ad9af.txt', express.static(__dirname + '/../loaderio-802017663598481767d95a0bfb7ad9af.txt'));
 
 app.get('/qa/:productId', (req, res) => {
   const { page, count } = req.query;

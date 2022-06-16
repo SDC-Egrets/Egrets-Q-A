@@ -13,7 +13,6 @@ app.use(cors());
 app.use('/loaderio-802017663598481767d95a0bfb7ad9af.txt', express.static(__dirname + '/../loaderio-802017663598481767d95a0bfb7ad9af.txt'));
 
 app.get('/qa/:productId', (req, res) => {
-  console.log('here');
   const { page, count } = req.query;
   const { productId } = req.params;
   getAllQuestions(productId, page, count)

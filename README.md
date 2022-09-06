@@ -14,7 +14,7 @@ The goal of the project was to build a scalable RESTful API for an existing e-co
 
 ## API Development & Optimization
 
-![q&a_schema]()
+![q&a_schema](schema.png)
 
 - Design and evaluate **RDBMS** and **DBMS** and consider tradeoffs: selected **PostgreSQL**
 
